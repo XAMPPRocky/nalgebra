@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::allocator::{Allocator, Reallocator};
 use crate::base::{DefaultAllocator, Matrix, MatrixMN, MatrixN, Unit, VectorN};
 use crate::constraint::{SameNumberOfRows, ShapeConstraint};
-use crate::dimension::{Dim, DimMin, DimMinimum, U1};
+use crate::dimension::{Const, Dim, DimMin, DimMinimum};
 use crate::storage::{Storage, StorageMut};
 use simba::scalar::ComplexField;
 
@@ -54,7 +54,7 @@ where
         let (nrows, ncols) = matrix.data.shape();
         let min_nrows_ncols = nrows.min(ncols);
 
-        let mut diag = unsafe { MatrixMN::new_uninitialized_generic(min_nrows_ncols, U1) };
+        let mut diag = unsafe { MatrixMN::new_uninitialized_generic(min_nrows_ncols, Const::<1>) };
 
         if min_nrows_ncols.value() == 0 {
             return QR { qr: matrix, diag };

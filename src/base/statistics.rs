@@ -1,6 +1,6 @@
 use crate::allocator::Allocator;
 use crate::storage::Storage;
-use crate::{DefaultAllocator, Dim, Matrix, RowVectorN, Scalar, VectorN, VectorSliceN, U1};
+use crate::{Const, DefaultAllocator, Dim, Matrix, RowVectorN, Scalar, VectorN, VectorSliceN, U1};
 use num::Zero;
 use simba::scalar::{ClosedAdd, Field, SupersetOf};
 
@@ -17,7 +17,7 @@ impl<N: Scalar, R: Dim, C: Dim, S: Storage<N, R, C>> Matrix<N, R, C, S> {
         DefaultAllocator: Allocator<N, U1, C>,
     {
         let ncols = self.data.shape().1;
-        let mut res = unsafe { RowVectorN::new_uninitialized_generic(U1, ncols) };
+        let mut res = unsafe { RowVectorN::new_uninitialized_generic(Const::<1>, ncols) };
 
         for i in 0..ncols.value() {
             // TODO: avoid bound checking of column.
@@ -42,7 +42,7 @@ impl<N: Scalar, R: Dim, C: Dim, S: Storage<N, R, C>> Matrix<N, R, C, S> {
         DefaultAllocator: Allocator<N, C>,
     {
         let ncols = self.data.shape().1;
-        let mut res = unsafe { VectorN::new_uninitialized_generic(ncols, U1) };
+        let mut res = unsafe { VectorN::new_uninitialized_generic(ncols, Const::<1>) };
 
         for i in 0..ncols.value() {
             // TODO: avoid bound checking of column.
@@ -172,7 +172,7 @@ impl<N: Scalar, R: Dim, C: Dim, S: Storage<N, R, C>> Matrix<N, R, C, S> {
         DefaultAllocator: Allocator<N, R>,
     {
         let nrows = self.data.shape().0;
-        self.compress_columns(VectorN::zeros_generic(nrows, U1), |out, col| {
+        self.compress_columns(VectorN::zeros_generic(nrows, Const::<1>), |out, col| {
             *out += col;
         })
     }
@@ -376,7 +376,7 @@ impl<N: Scalar, R: Dim, C: Dim, S: Storage<N, R, C>> Matrix<N, R, C, S> {
     {
         let (nrows, ncols) = self.data.shape();
         let denom = N::one() / crate::convert::<_, N>(ncols.value() as f64);
-        self.compress_columns(VectorN::zeros_generic(nrows, U1), |out, col| {
+        self.compress_columns(VectorN::zeros_generic(nrows, Const::<1>), |out, col| {
             out.axpy(denom.inlined_clone(), &col, N::one())
         })
     }

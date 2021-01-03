@@ -10,7 +10,7 @@ use crate::base::allocator::Allocator;
 use crate::base::constraint::{
     AreMultipliable, DimEq, SameNumberOfColumns, SameNumberOfRows, ShapeConstraint,
 };
-use crate::base::dimension::{Dim, Dynamic, U1, U2, U3, U4};
+use crate::base::dimension::{Const, Dim, Dynamic, U1, U2, U3, U4};
 use crate::base::storage::{Storage, StorageMut};
 use crate::base::{
     DVectorSlice, DefaultAllocator, Matrix, Scalar, SquareMatrix, Vector, VectorSliceN,
@@ -1120,7 +1120,7 @@ where
             let val = unsafe { conjugate(y.vget_unchecked(j).inlined_clone()) };
             let subdim = Dynamic::new(dim1 - j);
             // TODO: avoid bound checks.
-            self.generic_slice_mut((j, j), (subdim, U1)).axpy(
+            self.generic_slice_mut((j, j), (subdim, Const::<1>)).axpy(
                 alpha.inlined_clone() * val,
                 &x.rows_range(j..),
                 beta.inlined_clone(),
@@ -1328,7 +1328,8 @@ where
         ShapeConstraint: DimEq<D1, D1> + DimEq<D1, R3> + DimEq<C3, D4>,
         DefaultAllocator: Allocator<N, D1>,
     {
-        let mut work = unsafe { Vector::new_uninitialized_generic(self.data.shape().0, U1) };
+        let mut work =
+            unsafe { Vector::new_uninitialized_generic(self.data.shape().0, Const::<1>) };
         self.quadform_tr_with_workspace(&mut work, alpha, lhs, mid, beta)
     }
 
@@ -1421,7 +1422,7 @@ where
         ShapeConstraint: DimEq<D2, R3> + DimEq<D1, C3> + AreMultipliable<C3, R3, D2, U1>,
         DefaultAllocator: Allocator<N, D2>,
     {
-        let mut work = unsafe { Vector::new_uninitialized_generic(mid.data.shape().0, U1) };
+        let mut work = unsafe { Vector::new_uninitialized_generic(mid.data.shape().0, Const::<1>) };
         self.quadform_with_workspace(&mut work, alpha, mid, rhs, beta)
     }
 }

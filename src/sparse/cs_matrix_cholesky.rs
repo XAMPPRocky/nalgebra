@@ -3,7 +3,7 @@ use std::mem;
 
 use crate::allocator::Allocator;
 use crate::sparse::{CsMatrix, CsStorage, CsStorageIter, CsStorageIterMut, CsVecStorage};
-use crate::{DefaultAllocator, Dim, RealField, VectorN, U1};
+use crate::{Const, DefaultAllocator, Dim, RealField, VectorN};
 
 /// The cholesky decomposition of a column compressed sparse matrix.
 pub struct CsCholesky<N: RealField, D: Dim>
@@ -48,8 +48,8 @@ where
         let (l, u) = Self::nonzero_pattern(m);
 
         // Workspaces.
-        let work_x = unsafe { VectorN::new_uninitialized_generic(m.data.shape().0, U1) };
-        let work_c = unsafe { VectorN::new_uninitialized_generic(m.data.shape().1, U1) };
+        let work_x = unsafe { VectorN::new_uninitialized_generic(m.data.shape().0, Const::<1>) };
+        let work_c = unsafe { VectorN::new_uninitialized_generic(m.data.shape().1, Const::<1>) };
         let mut original_p = m.data.p.as_slice().to_vec();
         original_p.push(m.data.i.len());
 
@@ -291,7 +291,7 @@ where
         let etree = Self::elimination_tree(m);
         let (nrows, ncols) = m.data.shape();
         let mut rows = Vec::with_capacity(m.len());
-        let mut cols = unsafe { VectorN::new_uninitialized_generic(m.data.shape().0, U1) };
+        let mut cols = unsafe { VectorN::new_uninitialized_generic(m.data.shape().0, Const::<1>) };
         let mut marks = Vec::new();
 
         // NOTE: the following will actually compute the non-zero pattern of

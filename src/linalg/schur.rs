@@ -7,7 +7,7 @@ use simba::scalar::{ComplexField, RealField};
 use std::cmp;
 
 use crate::allocator::Allocator;
-use crate::base::dimension::{Dim, DimDiff, DimSub, Dynamic, U1, U2, U3};
+use crate::base::dimension::{Const, Dim, DimDiff, DimSub, Dynamic, U1, U2};
 use crate::base::storage::Storage;
 use crate::base::{DefaultAllocator, MatrixN, SquareMatrix, Unit, Vector2, Vector3, VectorN};
 
@@ -71,7 +71,7 @@ where
     /// number of iteration is exceeded, `None` is returned. If `niter == 0`, then the algorithm
     /// continues indefinitely until convergence.
     pub fn try_new(m: MatrixN<N, D>, eps: N::RealField, max_niter: usize) -> Option<Self> {
-        let mut work = unsafe { VectorN::new_uninitialized_generic(m.data.shape().0, U1) };
+        let mut work = unsafe { VectorN::new_uninitialized_generic(m.data.shape().0, Const::<1>) };
 
         Self::do_decompose(m, &mut work, eps, max_niter, true)
             .map(|(q, t)| Schur { q: q.unwrap(), t })
@@ -171,18 +171,21 @@ where
                         {
                             let krows = cmp::min(k + 4, end + 1);
                             let mut work = work.rows_mut(0, krows);
-                            refl.reflect(
-                                &mut t
-                                    .generic_slice_mut((k, k), (U3, Dynamic::new(dim.value() - k))),
-                            );
+                            refl.reflect(&mut t.generic_slice_mut(
+                                (k, k),
+                                (Const::<3>, Dynamic::new(dim.value() - k)),
+                            ));
                             refl.reflect_rows(
-                                &mut t.generic_slice_mut((0, k), (Dynamic::new(krows), U3)),
+                                &mut t.generic_slice_mut((0, k), (Dynamic::new(krows), Const::<3>)),
                                 &mut work,
                             );
                         }
 
                         if let Some(ref mut q) = q {
-                            refl.reflect_rows(&mut q.generic_slice_mut((0, k), (dim, U3)), work);
+                            refl.reflect_rows(
+                                &mut q.generic_slice_mut((0, k), (dim, Const::<3>)),
+                                work,
+                            );
                         }
                     }
 
@@ -205,17 +208,21 @@ where
 
                     {
                         let mut work = work.rows_mut(0, end + 1);
-                        refl.reflect(
-                            &mut t.generic_slice_mut((m, m), (U2, Dynamic::new(dim.value() - m))),
-                        );
+                        refl.reflect(&mut t.generic_slice_mut(
+                            (m, m),
+                            (Const::<2>, Dynamic::new(dim.value() - m)),
+                        ));
                         refl.reflect_rows(
-                            &mut t.generic_slice_mut((0, m), (Dynamic::new(end + 1), U2)),
+                            &mut t.generic_slice_mut((0, m), (Dynamic::new(end + 1), Const::<2>)),
                             &mut work,
                         );
                     }
 
                     if let Some(ref mut q) = q {
-                        refl.reflect_rows(&mut q.generic_slice_mut((0, m), (dim, U2)), work);
+                        refl.reflect_rows(
+                            &mut q.generic_slice_mut((0, m), (dim, Const::<2>)),
+                            work,
+                        );
                     }
                 }
             } else {
@@ -224,15 +231,15 @@ where
                     let inv_rot = rot.inverse();
                     inv_rot.rotate(&mut t.generic_slice_mut(
                         (start, start),
-                        (U2, Dynamic::new(dim.value() - start)),
+                        (Const::<2>, Dynamic::new(dim.value() - start)),
                     ));
                     rot.rotate_rows(
-                        &mut t.generic_slice_mut((0, start), (Dynamic::new(end + 1), U2)),
+                        &mut t.generic_slice_mut((0, start), (Dynamic::new(end + 1), Const::<2>)),
                     );
                     t[(end, start)] = N::zero();
 
                     if let Some(ref mut q) = q {
-                        rot.rotate_rows(&mut q.generic_slice_mut((0, start), (dim, U2)));
+                        rot.rotate_rows(&mut q.generic_slice_mut((0, start), (dim, Const::<2>)));
                     }
                 }
 
@@ -378,7 +385,8 @@ where
     ///
     /// Return `None` if some eigenvalues are complex.
     pub fn eigenvalues(&self) -> Option<VectorN<N, D>> {
-        let mut out = unsafe { VectorN::new_uninitialized_generic(self.t.data.shape().0, U1) };
+        let mut out =
+            unsafe { VectorN::new_uninitialized_generic(self.t.data.shape().0, Const::<1>) };
         if Self::do_eigenvalues(&self.t, &mut out) {
             Some(out)
         } else {
@@ -392,7 +400,8 @@ where
         N: RealField,
         DefaultAllocator: Allocator<NumComplex<N>, D>,
     {
-        let mut out = unsafe { VectorN::new_uninitialized_generic(self.t.data.shape().0, U1) };
+        let mut out =
+            unsafe { VectorN::new_uninitialized_generic(self.t.data.shape().0, Const::<1>) };
         Self::do_complex_eigenvalues(&self.t, &mut out);
         out
     }
@@ -503,7 +512,8 @@ where
             "Unable to compute eigenvalues of a non-square matrix."
         );
 
-        let mut work = unsafe { VectorN::new_uninitialized_generic(self.data.shape().0, U1) };
+        let mut work =
+            unsafe { VectorN::new_uninitialized_generic(self.data.shape().0, Const::<1>) };
 
         // Special case for 2x2 matrices.
         if self.nrows() == 2 {
@@ -544,7 +554,7 @@ where
         DefaultAllocator: Allocator<NumComplex<N>, D>,
     {
         let dim = self.data.shape().0;
-        let mut work = unsafe { VectorN::new_uninitialized_generic(dim, U1) };
+        let mut work = unsafe { VectorN::new_uninitialized_generic(dim, Const::<1>) };
 
         let schur = Schur::do_decompose(
             self.clone_owned(),
@@ -554,7 +564,7 @@ where
             false,
         )
         .unwrap();
-        let mut eig = unsafe { VectorN::new_uninitialized_generic(dim, U1) };
+        let mut eig = unsafe { VectorN::new_uninitialized_generic(dim, Const::<1>) };
         Schur::do_complex_eigenvalues(&schur.1, &mut eig);
         eig
     }

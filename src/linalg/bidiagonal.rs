@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::allocator::Allocator;
 use crate::base::{DefaultAllocator, Matrix, MatrixMN, MatrixN, Unit, VectorN};
-use crate::dimension::{Dim, DimDiff, DimMin, DimMinimum, DimSub, U1};
+use crate::dimension::{Const, Dim, DimDiff, DimMin, DimMinimum, DimSub, U1};
 use crate::storage::Storage;
 use simba::scalar::ComplexField;
 
@@ -81,11 +81,13 @@ where
             "Cannot compute the bidiagonalization of an empty matrix."
         );
 
-        let mut diagonal = unsafe { MatrixMN::new_uninitialized_generic(min_nrows_ncols, U1) };
-        let mut off_diagonal =
-            unsafe { MatrixMN::new_uninitialized_generic(min_nrows_ncols.sub(U1), U1) };
-        let mut axis_packed = unsafe { MatrixMN::new_uninitialized_generic(ncols, U1) };
-        let mut work = unsafe { MatrixMN::new_uninitialized_generic(nrows, U1) };
+        let mut diagonal =
+            unsafe { MatrixMN::new_uninitialized_generic(min_nrows_ncols, Const::<1>) };
+        let mut off_diagonal = unsafe {
+            MatrixMN::new_uninitialized_generic(min_nrows_ncols.sub(Const::<1>), Const::<1>)
+        };
+        let mut axis_packed = unsafe { MatrixMN::new_uninitialized_generic(ncols, Const::<1>) };
+        let mut work = unsafe { MatrixMN::new_uninitialized_generic(nrows, Const::<1>) };
 
         let upper_diagonal = nrows.value() >= ncols.value();
         if upper_diagonal {
@@ -239,8 +241,8 @@ where
         let min_nrows_ncols = nrows.min(ncols);
 
         let mut res = Matrix::identity_generic(min_nrows_ncols, ncols);
-        let mut work = unsafe { MatrixMN::new_uninitialized_generic(min_nrows_ncols, U1) };
-        let mut axis_packed = unsafe { MatrixMN::new_uninitialized_generic(ncols, U1) };
+        let mut work = unsafe { MatrixMN::new_uninitialized_generic(min_nrows_ncols, Const::<1>) };
+        let mut axis_packed = unsafe { MatrixMN::new_uninitialized_generic(ncols, Const::<1>) };
 
         let shift = self.axis_shift().1;
 

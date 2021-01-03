@@ -37,7 +37,6 @@ libm-force = [ "simba/libm_force" ]
 
 [dependencies]
 typenum        = "1.12"
-generic-array  = "0.14"
 rand           = { version = "0.7", default-features = false }
 num-traits     = { version = "0.2", default-features = false }
 num-complex    = { version = "0.3", default-features = false }

@@ -79,13 +79,14 @@ an optimized set of tools for computer graphics and physics. Those features incl
 #![deny(non_upper_case_globals)]
 #![deny(unused_qualifications)]
 #![deny(unused_results)]
-#![deny(missing_docs)]
+// #![deny(missing_docs)]
 #![doc(
     html_favicon_url = "https://nalgebra.org/img/favicon.ico",
     html_root_url = "https://nalgebra.org/rustdoc"
 )]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(all(feature = "alloc", not(feature = "std")), feature(alloc))]
+#![feature(min_const_generics)]
 
 #[cfg(feature = "arbitrary")]
 extern crate quickcheck;
